@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -16,10 +16,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(uuid.New())
-
 	r := mux.NewRouter()
-
+	
+	r.HandleFunc("/", homePage).Methods("GET")
 	r.HandleFunc("/api/v1/products", createProduct).Methods("POST")
 	r.HandleFunc("/api/v1/products", getProducts).Methods("GET")
 	r.HandleFunc("/api/v1/products/{id}", getProduct).Methods("GET")
@@ -34,6 +33,15 @@ func main() {
 
 	// Starting Server
 	log.Fatal(http.ListenAndServe(":8000", r))
+}
+
+// homePage
+func homePage(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("index.html")
+	if err != nil {
+		panic(err)
+	}
+	t.Execute(w, nil)
 }
 
 // Create Product
@@ -131,7 +139,7 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	// 	"name": product.Store.Name,
 	// }
 	// db.Model(product).WherePK().Set("name = ?, quantity = ?, price = ?, store = ?", product.Name, product.Quantity, product.Price, store).Update()
-	
+
 	_, err := db.Model(product).WherePK().Set("name = ?, quantity = ?, price = ?, store = ?", product.Name, product.Quantity, product.Price, product.Store).Update()
 	if err != nil {
 		log.Println(err)
